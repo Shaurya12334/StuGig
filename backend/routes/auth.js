@@ -1,10 +1,14 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'stugig_super_secret_key_12345';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // Signup Route
 router.post('/signup', async (req, res) => {
@@ -75,39 +79,86 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Google Sign-In Route (Mocked)
+// Google Sign-In Route — Real GIS verification (not mocked)
 router.post('/google', async (req, res) => {
   try {
-    const { name, email, googleId } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ message: 'Email is required from Google.' });
+    const { credential } = req.body;
+    
+    console.log('[DEBUG] [/api/auth/google] Received Google credential request from frontend.');
+    if (credential) {
+      console.log(`[DEBUG] [/api/auth/google] ID Token starts with: ${credential.substring(0, 20)}...`);
     }
 
+    if (!credential) {
+      return res.status(400).json({ message: 'Google credential token is required.' });
+    }
+
+    if (!GOOGLE_CLIENT_ID) {
+      return res.status(500).json({ message: 'GOOGLE_CLIENT_ID is not configured on the server.' });
+    }
+
+    // Cryptographically verify the signed ID token against Google's public keys
+    let ticket;
+    try {
+      console.log('[DEBUG] [/api/auth/google] Initializing cryptographic signature check against Google public keys...');
+      ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: GOOGLE_CLIENT_ID,
+      });
+      console.log('[DEBUG] [/api/auth/google] Signature validation succeeded.');
+    } catch (verifyErr) {
+      console.error('[ERROR] [/api/auth/google] Google token verification failed:', verifyErr.message);
+      return res.status(401).json({ message: 'Invalid Google credential. Verification failed.' });
+    }
+
+    const payload = ticket.getPayload();
+    const { sub, email, name, picture } = payload;
+
+    console.log(`[DEBUG] [/api/auth/google] Verified Payload - Email: ${email}, Name: ${name}, Sub (Google ID): ${sub}`);
+
+    // Look up existing user or create a new one
     let user = await User.findOne({ email });
 
-    // If user doesn't exist, create them automatically
     if (!user) {
+      console.log(`[DEBUG] [/api/auth/google] User with email ${email} not found. Creating new user record...`);
+      // Generate a random placeholder password — Google users never log in with a password
+      const crypto = require('crypto');
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(googleId || 'default_google_password', salt);
-      
+      const hashedPassword = await bcrypt.hash(crypto.randomUUID(), salt);
+
       user = new User({
-        name: name || 'Google User',
+        name: name || email.split('@')[0],
         email,
         password: hashedPassword,
-        role: 'Freelancer' // default role
+        role: 'Freelancer', // same default as manual signup
       });
       await user.save();
+      console.log(`[DEBUG] [/api/auth/google] Created new User document in database with ID: ${user._id}`);
+    } else {
+      console.log(`[DEBUG] [/api/auth/google] Found existing user with ID: ${user._id}`);
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
+    // Issue the same JWT format as /login so the rest of the app works identically
+    const token = jwt.sign(
+      { id: user._id, role: user.role, isAdmin: user.isAdmin || false },
+      JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+    
+    console.log(`[DEBUG] [/api/auth/google] Issuing final app session JWT starting with: ${token.substring(0, 20)}...`);
 
     res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isAdmin: user.isAdmin || false,
+      }
     });
   } catch (error) {
-    console.error(error);
+    console.error('[ERROR] [/api/auth/google] Google sign-in error:', error);
     res.status(500).json({ message: 'Server error during Google login' });
   }
 });

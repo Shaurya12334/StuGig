@@ -11,7 +11,7 @@ import Signup from './pages/Signup';
 import Jobs from './pages/Jobs';
 import Flash from './pages/Flash';
 import Messages from './pages/Messages';
-import GoogleMockAuth from './pages/GoogleMockAuth';
+
 
 const LandingPage = () => {
   return (
@@ -105,7 +105,7 @@ function App() {
           <Route path="/messages" element={<Messages />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/signup" element={<Signup setUser={setUser} />} />
-          <Route path="/google-mock-login" element={<GoogleMockAuth />} />
+
         </Routes>
       </div>
     </Router>
