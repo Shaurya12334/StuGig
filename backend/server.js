@@ -26,10 +26,18 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, Postman, server-to-server)
+    // Allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS: origin ${origin} not allowed`));
+    
+    // Log origin checking to help debug CORS setup on Render
+    console.log(`[CORS] Request Origin: "${origin}" | Allowed:`, allowedOrigins);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Return false instead of throwing a 500 error, so browser gets standard CORS block
+    callback(null, false);
   },
   credentials: true,
 }));
