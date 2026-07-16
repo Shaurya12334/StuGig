@@ -15,13 +15,13 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/stugig';
-const JWT_SECRET = process.env.JWT_SECRET || 'stugig_super_secret_key_12345';
+const MONGODB_URI = (process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/stugig').trim();
+const JWT_SECRET = (process.env.JWT_SECRET || 'stugig_super_secret_key_12345').trim();
 
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL ? process.env.FRONTEND_URL.trim() : null,
 ].filter(Boolean);
 
 app.use(cors({
