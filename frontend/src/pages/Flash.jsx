@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { Upload, Zap, CheckCircle, XCircle, ExternalLink, MapPin, Globe, RefreshCw, FileText, Star, Sparkles, Coins, Briefcase, GraduationCap, Clock, Flame } from 'lucide-react';
 
 // ── CSS-in-JS styles injected via <style> tag ──────────────────────────────
@@ -366,7 +366,7 @@ const ResumeUploadSection = ({ onProfileLoaded }) => {
     try {
       const formData = new FormData();
       formData.append('resume', file);
-      const res = await axios.post('http://localhost:5000/api/resume/upload', formData, {
+      const res = await api.post('/api/resume/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       localStorage.setItem('resumeProfile', JSON.stringify(res.data.profile));
@@ -488,7 +488,7 @@ export default function Flash() {
     setCurrentIndex(0);
     setCards([]);
     try {
-      const res = await axios.post('http://localhost:5000/api/resume/flash-jobs', {
+      const res = await api.post('/api/resume/flash-jobs', {
         ...p,
         lookingFor: look
       });

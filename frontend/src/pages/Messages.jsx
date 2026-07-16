@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { Mail, Calendar, Video, Clock, Building, User, CheckCheck, Inbox, AlertCircle, ArrowUpRight } from 'lucide-react';
 
 export default function Messages() {
@@ -11,7 +11,7 @@ export default function Messages() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/messages', {
+      const res = await api.get('/api/messages', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessages(res.data || []);
@@ -29,7 +29,7 @@ export default function Messages() {
   const handleMarkAsRead = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`http://localhost:5000/api/messages/${id}/read`, {}, {
+      await api.patch(`/api/messages/${id}/read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       // Update local state
@@ -42,7 +42,7 @@ export default function Messages() {
   const handleTriggerMock = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:5000/api/messages/send-mock', {}, {
+      const res = await api.post('/api/messages/send-mock', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success && res.data.message) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import axios from 'axios';
+import api from './api';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import InternshipFeed from './components/InternshipFeed';
@@ -40,7 +40,7 @@ function App() {
       const existingToken = localStorage.getItem('token');
       if (existingToken) {
         try {
-          await axios.get('http://localhost:5000/api/auth/me', {
+          await api.get('/api/auth/me', {
             headers: { Authorization: `Bearer ${existingToken}` }
           });
           const stored = localStorage.getItem('user');
@@ -54,7 +54,7 @@ function App() {
       }
 
       try {
-        const res = await axios.get('http://localhost:5000/api/auth/admin-token');
+        const res = await api.get('/api/auth/admin-token');
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
         setUser(res.data.user);

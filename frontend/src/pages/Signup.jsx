@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -15,7 +15,7 @@ const Signup = ({ setUser }) => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/google', {
+      const res = await api.post('/api/auth/google', {
         credential: response.credential,
       });
       localStorage.setItem('token', res.data.token);
@@ -73,7 +73,7 @@ const Signup = ({ setUser }) => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/signup', formData);
+      const res = await api.post('/api/auth/signup', formData);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       if (setUser) setUser(res.data.user);

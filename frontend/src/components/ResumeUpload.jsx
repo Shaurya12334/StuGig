@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { X, Upload, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function ResumeUpload({ isOpen, onClose, onUploadSuccess }) {
@@ -29,7 +29,7 @@ export default function ResumeUpload({ isOpen, onClose, onUploadSuccess }) {
       const formData = new FormData();
       formData.append('resume', file);
 
-      const res = await axios.post('http://localhost:5000/api/resume/upload', formData, {
+      const res = await api.post('/api/resume/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 

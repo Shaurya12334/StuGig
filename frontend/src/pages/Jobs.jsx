@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import {
   Search, Filter, MapPin, Globe, Briefcase, Clock,
   Zap, Star, FlaskConical, CheckCircle, Bookmark, X,
@@ -304,7 +304,7 @@ const Jobs = () => {
       if (userGeo.lat) params.set('userLat', userGeo.lat);
       if (userGeo.lng) params.set('userLng', userGeo.lng);
 
-      const res = await axios.get(`http://localhost:5000/api/jobs/search?${params}`);
+      const res = await api.get(`/api/jobs/search?${params}`);
       let data = res.data.data || [];
 
       // Filter by tag if selected

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 
 /* ─────────────────────────────────────────
    3D Theme Button — fully self-contained
@@ -150,7 +150,7 @@ const Navbar = ({ onThemeToggle, isDarkMode, user, setUser }) => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-        const res = await axios.get('http://localhost:5000/api/messages', {
+        const res = await api.get('/api/messages', {
           headers: { Authorization: `Bearer ${token}` }
         });
         const unread = res.data.filter(m => !m.isRead).length;

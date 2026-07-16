@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { Briefcase, MapPin, Coins, Clock, Globe, ArrowRight } from 'lucide-react';
 
 function timeAgo(ts) {
@@ -20,7 +20,7 @@ export default function InternshipFeed() {
     const fetchInternships = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('http://localhost:5000/api/jobs/search?search=internship&page=1');
+        const res = await api.get('/api/jobs/search?search=internship&page=1');
         const data = (res.data.data || []).slice(0, 4);
         setInternships(data);
       } catch (err) {

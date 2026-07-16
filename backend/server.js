@@ -18,8 +18,19 @@ const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/stugig';
 const JWT_SECRET = process.env.JWT_SECRET || 'stugig_super_secret_key_12345';
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
 }));
 app.use(express.json());
@@ -30,8 +41,11 @@ app.use('/api/jobs', jobsRoutes);
 app.use('/api/resume', resumeRoutes);
 app.use('/api/messages', messagesRoutes);
 
-// Special endpoint to get admin token (localhost dev mode)
+// Special endpoint to get admin token — disabled in production
 app.get('/api/auth/admin-token', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ message: 'Not available in production' });
+  }
   try {
     const User = require('./models/User');
     const admin = await User.findOne({ isAdmin: true });
